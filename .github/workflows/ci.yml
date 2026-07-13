@@ -1,0 +1,41 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: offline tests (stdlib only)
+        run: python3 test_canary.py
+      - name: signing round-trip (needs eth-account)
+        run: |
+          python3 -m pip install --quiet eth-account
+          python3 - <<'PY'
+          import os
+          import x402_canary as c
+          from eth_account import Account
+          from eth_account.messages import encode_typed_data
+          req = {"scheme":"exact","network":"eip155:8453","maxAmountRequired":"2000",
+                 "asset":"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                 "payTo":"0xBEccE6dd106Cfa910F78fea188B2fcCEb73bdD0F",
+                 "maxTimeoutSeconds":60,"extra":{"name":"USD Coin","version":"2"}}
+          p = c.build_payment(req, "0x"+os.urandom(32).hex())
+          a = p["payload"]["authorization"]
+          domain = {"name":"USD Coin","version":"2","chainId":8453,"verifyingContract":req["asset"]}
+          types = {"TransferWithAuthorization":[{"name":"from","type":"address"},
+                   {"name":"to","type":"address"},{"name":"value","type":"uint256"},
+                   {"name":"validAfter","type":"uint256"},{"name":"validBefore","type":"uint256"},
+                   {"name":"nonce","type":"bytes32"}]}
+          msg = {"from":a["from"],"to":a["to"],"value":int(a["value"]),
+                 "validAfter":int(a["validAfter"]),"validBefore":int(a["validBefore"]),"nonce":a["nonce"]}
+          rec = Account.recover_message(encode_typed_data(domain,types,msg),
+                                        signature=p["payload"]["signature"])
+          assert rec.lower()==a["from"].lower(), "signature must recover to the signer"
+          print("signing round-trip ok")
+          PY
