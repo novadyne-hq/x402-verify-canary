@@ -1,0 +1,99 @@
+{
+    "x402Version": 2,
+    "resource": {
+        "url": "https://agent-worker.infai-tech-corporation.workers.dev/vulnscan/cve/CVE-2024-3094",
+        "description": "CVE lookup",
+        "serviceName": "VulnFeed by Novadyne"
+    },
+    "accepts": [
+        {
+            "scheme": "exact",
+            "network": "eip155:8453",
+            "maxAmountRequired": "2000",
+            "amount": "2000",
+            "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "resource": "https://agent-worker.infai-tech-corporation.workers.dev/vulnscan/cve/CVE-2024-3094",
+            "description": "CVE lookup",
+            "payTo": "0xBEccE6dd106Cfa910F78fea188B2fcCEb73bdD0F",
+            "maxTimeoutSeconds": 60,
+            "extra": {
+                "name": "USD Coin",
+                "version": "2",
+                "decimals": 6
+            }
+        }
+    ],
+    "error": "payment_required",
+    "extensions": {
+        "bazaar": {
+            "info": {
+                "title": "Look up a single CVE / GHSA with EPSS and fix data",
+                "description": "Resolve one vulnerability identifier (CVE or GHSA) to its full advisory: summary, affected ranges, CVSS severity, the EPSS exploit-probability score and percentile, and the fixed version. Use it to enrich a finding an agent already has, or to decide whether a single flagged dependency is worth acting on."
+            },
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "input": {
+                        "type": "object",
+                        "properties": {
+                            "queryParams": {
+                                "type": "object",
+                                "properties": {
+                                    "cve_id": {
+                                        "type": "string",
+                                        "description": "CVE or GHSA identifier, e.g. CVE-2021-23337 or GHSA-35jh-r3h4-6jhm"
+                                    }
+                                },
+                                "required": [
+                                    "cve_id"
+                                ]
+                            }
+                        }
+                    },
+                    "output": {
+                        "type": "object",
+                        "properties": {
+                            "ok": {
+                                "type": "boolean"
+                            },
+                            "id": {
+                                "type": "string",
+                                "description": "Canonical advisory ID"
+                            },
+                            "summary": {
+                                "type": "string",
+                                "description": "One-line description of the flaw"
+                            },
+                            "severity": {
+                                "type": "array",
+                                "description": "CVSS vectors/ratings from the upstream advisories"
+                            },
+                            "epss": {
+                                "type": "object",
+                                "description": "FIRST.org EPSS: {score: 0..1, percentile: 0..1, date}"
+                            }
+                        }
+                    }
+                }
+            },
+            "examples": {
+                "input": {
+                    "cve_id": "CVE-2021-23337"
+                },
+                "output": {
+                    "ok": true,
+                    "id": "CVE-2021-23337",
+                    "summary": "lodash command injection via _.template",
+                    "severity": [
+                        "HIGH (CVSS 7.2)"
+                    ],
+                    "epss": {
+                        "score": 0.0094,
+                        "percentile": 0.83,
+                        "date": "2026-06-19"
+                    }
+                }
+            }
+        }
+    }
+}
